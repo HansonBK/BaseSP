@@ -24,11 +24,22 @@ public class UserController {
 
 
     @PostMapping("/user")
-    @GetMapping("/user")
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequest req) {
 
         userService.register(req);
         return ResponseEntity.ok("User registered successfully");
+
+    }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginRequest req) {
+
+
+        if(userService.login(req)){
+            return ResponseEntity.ok("User logged in successfully");
+        }
+        return ResponseEntity.badRequest().body("Invalid username or password");
 
     }
 
@@ -38,6 +49,8 @@ public class UserController {
         userService.delete(userName);
         return ResponseEntity.ok("User deleted successfully");
     }
+
+
 
 
 

@@ -51,4 +51,21 @@ public class UserService {
 
 
     }
+
+    public boolean login(UserLoginRequest req) {
+
+        User user = getUserByUsername(req.getUsername());
+
+        if (user == null) {
+            throw new RuntimeException("User not found");
+
+        }
+        if (!user.getPassword().equals(req.getPassword())) {
+            throw new RuntimeException("Wrong password");
+
+        }
+        return true;
+    }
+
+
 }
