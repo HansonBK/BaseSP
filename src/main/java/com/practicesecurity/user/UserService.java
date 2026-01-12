@@ -1,7 +1,20 @@
 package com.practicesecurity.user;
 
 
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.apache.catalina.Authenticator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,8 +23,14 @@ import java.util.List;
 public class UserService {
 
     final private UserRepo userRepo;
-    public UserService(UserRepo userRepo) {
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authentication;
+
+    @Autowired
+    public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder, AuthenticationManager authentication) {
         this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
+        this.authentication = authentication;
     }
 
     public User getUser(long id) {
@@ -23,13 +42,21 @@ public class UserService {
         return userRepo.findAll();
     }
 
-    public void register(@Valid UserRegisterRequest req) {
+    public ResponseEntity<?> register(@Valid UserRegisterRequest req) {
+
+        boolean exits = userRepo.findByUsername(req.getUsername()).isPresent();
+
+        if(exits) {
+
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
 
         User user = new User();
         user.setUsername(req.getUsername());
-        user.setPassword(req.getPassword());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
 
         userRepo.save(user);
+        return ResponseEntity.ok("User registered successfully");
 
     }
 
@@ -52,19 +79,26 @@ public class UserService {
 
     }
 
-    public boolean login(UserLoginRequest req) {
+    public ResponseEntity<?> login(UserLoginRequest req, HttpServletRequest request) {
 
-        User user = getUserByUsername(req.getUsername());
 
-        if (user == null) {
-            throw new RuntimeException("User not found");
+        Authentication auth = authentication.authenticate(
+                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
+        );
 
-        }
-        if (!user.getPassword().equals(req.getPassword())) {
-            throw new RuntimeException("Wrong password");
+        SecurityContext context = SecurityContextHolder.getContext();
 
-        }
-        return true;
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        HttpSession session = request.getSession(true);
+
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                context
+        );
+
+
+        return ResponseEntity.ok("logged in successfully");
     }
 
 

@@ -15,7 +15,7 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    @GetMapping("/messages")
+    @GetMapping("/all/messages")
     public List<Message> findAll() {
 
         return messageService.AllMessages();
@@ -23,17 +23,17 @@ public class MessageController {
 
 
 
-    @GetMapping("/users/{username}/messages")
-    public ResponseEntity<List<MessageResponse>> findByUser(@PathVariable String username) {
-        return ResponseEntity.ok(messageService.findByUser(username));
+    @GetMapping("/messages")
+    public ResponseEntity<List<MessageResponse>> findByUser() {
+        return ResponseEntity.ok(messageService.findByUser());
     }
 
 
-    @PostMapping("/users/{username}/messages")
-    public ResponseEntity<?> save(@PathVariable String username, @RequestBody MessageRequest req ) {
+    @PostMapping("/messages")
+    public ResponseEntity<?> save( @RequestBody MessageRequest req ) {
 
 
-        messageService.createMessage(username,req);
+        messageService.createMessage(req);
         return ResponseEntity.ok("Message saved successfully");
 
 

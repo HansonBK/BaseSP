@@ -1,6 +1,7 @@
 package com.practicesecurity.user;
 
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/user")
+    @PostMapping("/auth/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequest req) {
 
         userService.register(req);
@@ -32,14 +33,13 @@ public class UserController {
     }
 
 
-    @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginRequest req) {
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginRequest req, HttpServletRequest request) {
 
 
-        if(userService.login(req)){
-            return ResponseEntity.ok("User logged in successfully");
-        }
-        return ResponseEntity.badRequest().body("Invalid username or password");
+        return userService.login(req, request);
+
+
 
     }
 
